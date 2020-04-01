@@ -1,0 +1,22 @@
+ctrl + L: clear
+
+ls: listar elementos
+
+pwd: ruta actual
+
+cd: ir a x ruta
+cd.. : retroceder
+
+mv dir1/ dir2: cambiar nombre de dir1 a dir2
+
+rm (-rf) dir1/: eliminar dicha dirección (-rf lo fuerza)
+
+vim xx.extension: crear archivo
+	apretando i puedes crear el archivo
+	ctrl + c -> dejar de escribir
+	:wq -> (cuando aparezca !type :) guardar
+	:q! -> no guardar los cambios
+
+history: historial de comandos
+history| grep "comando": historial solo de "comando"
+
