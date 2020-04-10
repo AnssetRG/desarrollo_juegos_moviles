@@ -20,3 +20,7 @@ vim xx.extension: crear archivo
 history: historial de comandos
 history| grep "comando": historial solo de "comando"
 
+
+git branch
+git checkout -b name_branch
+

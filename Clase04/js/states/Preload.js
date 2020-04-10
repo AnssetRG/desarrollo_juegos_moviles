@@ -1,4 +1,4 @@
-Preload = function(Game){}
+Preload = function(game){}
 
 Preload.prototype ={
 	preload:function(){
@@ -13,6 +13,6 @@ Preload.prototype ={
 		this.load.image("rubber_duck","assets/images/rubber_duck.png");
 	},
 	create:function(){
-		console.log("terminamos de cargar");
+		this.state.start("Menu");
 	}
 }
