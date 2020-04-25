@@ -12,7 +12,7 @@ Preload.prototype = {
 		
 		this.load.image("actionButton","assets/images/actionButton.png");
 		this.load.image("arrowButton","assets/images/arrowButton.png");
-		this.load.image("barrel","assets/images/actionButton.png");
+		this.load.image("barrel","assets/images/barrel.png");
 		this.load.image("gorilla3","assets/images/gorilla3.png");
 		this.load.image("ground","assets/images/ground.png");
 		this.load.image("platform","assets/images/platform.png");
