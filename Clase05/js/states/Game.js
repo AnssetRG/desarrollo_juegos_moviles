@@ -33,7 +33,7 @@ Game.prototype = {
 		this.character.body.collideWorldBounds = true;
 		this.character.animations.add('walking',[0,1,2,1],3,true);
 
-		this.keys = this.input.keyboard.createCursorKeys();
+		this.keys = this.input.keyboard.	();
 
 		this.ground = this.add.sprite(0,0,'ground');
 		this.ground.y = this.game.height - this.ground.height;
