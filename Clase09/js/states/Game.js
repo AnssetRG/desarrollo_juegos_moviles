@@ -2,126 +2,81 @@ Game = function(game){}
 
 //prototype: para crear más funcionalidades
 Game.prototype = {
+	//metodo que se ejecuta antes del create para los parámtros entre states
+	init:function(currentLevel,msg,show){
+		this.currentLevel = currentLevel ? currentLevel : 1;
+		this.houseX = 60;
+		this.sun_frecuency = 5;
+		this.sun_velocity = 50;
+		this.zombie_y_positions = [49,99,149,199,249];
+	},
 	create:function(){
-		this.gravity = 500;
-		this.jumpForce = -400;
+		this.background = this.game.add.sprite(0,0,'background');
+		this.createLand();
+		this.crateGUI();
+		this.bullets = this.game.add.group();
+		this.plants = this.game.add.group();
+		this.zombies = this.game.add.group();
+		this.suns = this.game.add.group();
 
-		//habilitar físicas
-		this.physics.startSystem(Phaser.Physics.ARCADE);
-
-		//tileSprite (iniX,iniY,finX,finY,asset)
-		this.background = this.game.add.tileSprite(0,0,this.game.width,this.game.height,"background");
-
-		//autoScroll (velocidadX, velocidadY)
-		this.background.autoScroll(-100,0);
-
-		this.player = new Player(this.game,this.gravity);
-
-
-
-		
-		this.spaceBar = this.game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
-		this.spaceBar.onDown.add(this.flap,this);
-		this.game.input.onDown.add(this.flap,this);
-
-		this.walls = this.game.add.group();
-		this.spawnWall = 0;
-		this.score = 0;
-
-		this.scoreText = this.game.add.text(0,0,'Score :'+this.score);
-		this.scoreText.fill = "#FFFFFF";
-
-		this.maxScore = this.game.add.text(0,0,'Max Score');
-		this.maxScore.x = this.game.width - 200;
-		this.maxScore.fill = "#FFFFFF";
-
-		this.gameOverText = this.game.add.text(0,0,'Game Over');
-		this.gameOverText.x = this.game.world.centerX;
-		this.gameOverText.y = this.game.world.centerY;
-		console.log(this.gameOverText.x ,this.gameOverText.y);
-		this.gameOverText.anchor.setTo(0.5);
-		this.gameOverText.inputEnabled = true;
-		this.gameOverText.visible = false;
-		this.gameOverText.events.onInputDown.add(this.restartGame,this);
-
-		if(localStorage.points != null){
-			this.maxScore.text = 'Max Score: ' + parseInt(localStorage.points);
-		}
+		this.numSums = 1000;
+		this.hitSounds = this.game.add.audio('hit');
+		this.loadLevel();
 	},
-	restartGame:function(){
-		this.state.start("Game");
-	},
-	flap:function(){
-		this.player.flap(this.jumpForce);
-	},
-	createWall:function(){
-		//integerInRange: random entre 2 valores 
-		let wallY = this.game.rnd.integerInRange(this.game.height*0.3,this.game.height*0.7);
-		this.generateWall(wallY);
-		this.generateWall(wallY,true);
-	},
-	generateWall:function(wallY,flipped){
-		let posY;
-		let opening = 400;
-		if(flipped){
-			wallY = wallY - (opening/2);
-		}else{
-			wallY = wallY + (opening/2);
-		}
-		let wall = this.walls.getFirstDead();
-		if(wall){
-			wall.reset(this.game.width, wallY);
-		}else{
-			wall = new Wall(this.game,{x:this.game.width,y:wallY});
-		}
-		this.game.physics.arcade.enable(wall);
-		wall.body.velocity.x = -200;
-		wall.body.inmovable = true;
-		wall.body.allowGravity = false;
-		this.walls.add(wall);
-		if(flipped){
-			wall.scale.y = -1;
-		}else{
-			wall.scale.y = 1;
-		}
-	},
-	update:function(){
-		this.spawnWall += this.game.time.elapsed;
-		if(this.spawnWall >3000){
-			this.spawnWall = 0;
-			this.createWall();
-		}
+	loadLevel:function(){
 
-		this.game.physics.arcade.overlap(this.player,this.walls,null,this.killPlayer,this);
-		this.walls.forEachAlive(function(wall){
-			if(wall.x < -wall.width){
-				wall.kill();
-			}else{
-				if(!wall.scored){
-					if(this.player.x >= wall.x){
-						wall.scored = true;
-						this.score += 0.5;
-						this.scoreText.text = 'Score :'+this.score;
-						
-					}
-				}
+	},
+	createLand:function(){
+		this.patches = this.game.add.group();
+		//crear en memoria algo con esas dimensiones
+		var rectangle = this.game.add.bitmapData(40,50);
+		//ctx: contexto
+		rectangle.ctx.fillStyle = "#000";
+		rectangle.ctx.fillRect(0,0,40,50);
+
+		let j,patch,alpha;
+		let dark = false;
+
+		for(let i=0; i<10;i++){
+			for(j=0;j<5;j++){
+				//para la siguiente sesión esto debe ser una clase
+				patch = new Phaser.Sprite(this.game,64+i*40,24+j*50,rectangle);
+				alpha = dark ? 0.2 : 0.1;
+				dark = !dark;
+				patch.alpha = alpha;
 			}
-		},this)
-	},
-	killPlayer:function(){
-		this.player.kill();
-		this.walls.callAll("kill");
-		
-		if(localStorage.points != null){
-			let temp = localStorage.points;
-			if(temp < this.score){
-				localStorage.points = parseInt(this.score);
-			}
-		}else{
-			//localStorage.setItem("points",this.points);
-			localStorage.points = parseInt(this.score);
 		}
+	},
+	crateGUI:function(){
+		let sun = this.game.add.sprite(10,this.game.height - 20, 'sun');
+		sun.anchor.setTo(0.5);
+		sun.scale.setTo(0.5);
+		let style = {font: "14px Arial",fill:"#fff"}
+		this.sunLabel = this.game.add.text(22,this.game.height - 28,'',style);
+		this.updateStats();
+		this.buttonData = JSON.parse(this.game.cache.getText("buttonData"));
+		this.buttons = this.game.add.group();
+		let button;
+		this.buttonData.forEach(function(element,index){
+			//para la siguiente sesión esto debe ser una clase
+			button = new Phaser.Button(this.game,80+index*40,this.game.height-35,element.btnAsset,this.clickButton,this);
+			button.buttonData = element;
+			this.buttons.add(button);
+		},this);
+	},
+	clearSelection:function(){
+		this.currentSelection = null;
+		this.buttons.forEach(function(element){
+			element.alpha = 1;
+			element.selected = false;
+		},this);
+	},
+	clickButton:function(sprite){
+		if(sprite.selected){
+			this.clearSelection();
+		}
+	},
+	updateStats:function(){
 
-		this.gameOverText.visible = true;
 	}
 }
