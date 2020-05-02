@@ -22,9 +22,17 @@ Game.prototype = {
 		this.numSums = 1000;
 		this.hitSounds = this.game.add.audio('hit');
 		this.loadLevel();
+		this.physics.startSystem(Phaser.Physics.ARCADE);
 	},
 	loadLevel:function(){
+		this.levelName = "level"+this.currentLevel;
+		this.levelData = JSON.parse(this.game.cache.getText(this.levelName));
+		this.zombieElapsed = 0;
+		this.currentZombie = 0;
 
+		this.zombieData = this.levelData.zombies;
+		this.totalZombie = this.zombieData.length - 1;
+		this.zombieTotalTime = this.zombieData[this.currentZombie].time * 1000;
 	},
 	createLand:function(){
 		this.patches = this.game.add.group();
@@ -39,11 +47,20 @@ Game.prototype = {
 
 		for(let i=0; i<10;i++){
 			for(j=0;j<5;j++){
-				//para la siguiente sesión esto debe ser una clase
 				patch = new Patch(this.game,{x:64+i*40,y:24+j*50},rectangle);
 				dark = patch.SetAlhpa(dark);
 				this.patches.add(patch);
+				patch.createPlant.add(this.putPlant,this);
 			}
+		}
+	},
+	putPlant:function(x,y,sprite){
+		if(this.currentSelection != null){
+			sprite.busy = true;
+			let plant = new Plant(this.game,{x:x, y:y},this.currentSelection);
+			//las plantas deben ser con pool de objetos
+			this.plants.add(plant);
+			this.clearSelection();
 		}
 	},
 	crateGUI:function(){
@@ -57,27 +74,54 @@ Game.prototype = {
 		this.buttons = this.game.add.group();
 		let button;
 		this.buttonData.forEach(function(element,index){
-			//para la siguiente sesión esto debe ser una clase
-			//button = new Phaser.Button(this.game,80+index*40,this.game.height-35,element.btnAsset,this.clickButton,this);
-			//button.buttonData = element;
-			button = new Button(this.game,{x:80+index*40, y:this.game.height-35},element.btnAsset,this.clickButton,this)
-			button.buttonData = element;
+			button = new Button(this.game,{x:80+index*40, y:this.game.height-35},element,index);
+			button.createElement.add(this.showElement,this);
 			this.buttons.add(button);
 		},this);
 	},
+	showElement:function(element){
+		this.currentSelection = element;
+	},
 	clearSelection:function(){
 		this.currentSelection = null;
-		this.buttons.forEach(function(element){
-			element.alpha = 1;
-			element.selected = false;
+		this.buttons.forEach(function(element,index){
+			element.unselected();
 		},this);
-	},
-	clickButton:function(sprite){
-		if(sprite.selected){
-			this.clearSelection();
-		}
 	},
 	updateStats:function(){
 
+	},
+	update:function(){
+		this.zombieElapsed += this.game.time.elapsed;
+		if(this.zombieElapsed >= this.zombieTotalTime){
+			if(this.currentZombie < this.totalZombie){
+				this.generateZombie(this.zombieData[this.currentZombie]);
+				this.currentZombie++;
+				if(this.totalZombie <= this.currentZombie){
+					this.currentZombie = 0;
+					this.zombieElapsed = 0;
+				}
+				this.zombieTotalTime = this.zombieData[this.currentZombie].time * 1000;
+				
+			}
+		}
+		this.zombies.forEachAlive(function(zombie){
+			if(zombie.x < 50){
+				zombie.kill();
+			}
+		});
+	},
+	generateZombie:function(element){
+		//GENERAR zombies con pool de objetos y utilizar el array de posiciones de zombies this.zombie_y_positions
+		let posY = this.game.rnd.integerInRange(0,this.zombie_y_positions.length)
+		let zombie = this.zombies.getFirstDead();
+		if(zombie){
+			console.log("Restarting Zombie");
+			zombie.reset(this.game.width - 50,this.zombie_y_positions[posY],element);
+		}else{
+			zombie = new Zombie(this.game,{x:this.game.width - 50,y:this.zombie_y_positions[posY]},element);
+		}
+		
+		this.zombies.add(zombie);
 	}
 }
