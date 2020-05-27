@@ -68,6 +68,7 @@ Game.prototype = {
       //las plantas deben ser con pool de objetos
       this.plants.add(plant);
       plant.createSun.add(this.generateSun, this);
+      plant.createBullet.add(this.generateBullet, this);
       this.numSums -= this.currentSelection.cost;
       this.clearSelection();
       this.updateStats();
@@ -113,7 +114,7 @@ Game.prototype = {
       this.generateSun();
     }
     this.zombieElapsed += this.game.time.elapsed;
-    /*if (this.zombieElapsed >= this.zombieTotalTime) {
+    if (this.zombieElapsed >= this.zombieTotalTime) {
       if (this.currentZombie < this.totalZombie) {
         this.generateZombie(this.zombieData[this.currentZombie]);
         this.currentZombie++;
@@ -123,12 +124,19 @@ Game.prototype = {
         }
         this.zombieTotalTime = this.zombieData[this.currentZombie].time * 1000;
       }
-    }*/
+    }
     this.zombies.forEachAlive(function (zombie) {
       if (zombie.x < 50) {
         zombie.kill();
       }
     });
+    this.game.physics.arcade.overlap(
+      this.zombies,
+      this.bullets,
+      null,
+      this.damageZobmie,
+      this
+    );
   },
   generateZombie: function (element) {
     //GENERAR zombies con pool de objetos y utilizar el array de posiciones de zombies this.zombie_y_positions
@@ -151,20 +159,33 @@ Game.prototype = {
 
     this.zombies.add(zombie);
   },
-  generateSun: function () {
+  generateSun: function (posx, posy) {
     let newsun = this.suns.getFirstDead();
-    let x = this.game.rnd.integerInRange(40, 420);
-    let y = -20;
+    let x = posx ? posx : this.game.rnd.integerInRange(40, 420);
+    let y = posy ? posy : -20;
+    let velocity = posx ? -this.sun_velocity : this.sun_velocity;
     if (!newsun) {
-      newsun = new Sun(this, x, y, this.sun_velocity);
+      console.log("NEW");
+      newsun = new Sun(this, x, y, velocity);
       this.suns.add(newsun);
       newsun.increaseSun.add(this.updateSun, this);
     } else {
-      newsun.reset(x, y);
+      console.log("REVIVE");
+      newsun.reset(x, y, velocity);
     }
+  },
+  generateBullet: function (x, y) {
+    //crear la bala
+    let bullet = new Bullet(this.game, x, y);
+    this.bullets.add(bullet);
+    this.hitSounds.play();
   },
   updateSun: function (points) {
     this.numSums += points;
     this.updateStats();
+  },
+  damageZobmie: function (zombie, bullet) {
+    bullet.kill();
+    zombie.damage(1);
   },
 };

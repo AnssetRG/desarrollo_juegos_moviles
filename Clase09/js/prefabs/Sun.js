@@ -18,14 +18,30 @@ Sun.prototype = Object.create(Phaser.Sprite.prototype);
 Sun.prototype.constructor = Sun;
 
 Sun.prototype.update = function () {
-  this.timerElapsed += this.game.timeElapsed;
+  this.timerElapsed += this.game.time.elapsed;
   if (this.timerElapsed >= this.totalSunElapsed) {
-    this.totalSunElapsed = 0;
-    this.kill();
+    console.log("GAAAA");
+    let tween = this.game.add.tween(this).to({ alpha: 0 });
+    tween.start();
+    tween.onComplete.add(this.kill, this);
+    this.timerElapsed = 0;
+    this.totalSunElapsed = 2000;
+    //this.kill();
   }
 };
 
 Sun.prototype.killSun = function () {
   this.increaseSun.dispatch(25);
   this.kill();
+};
+
+Sun.prototype.kill = function () {
+  Phaser.Sprite.prototype.kill.call(this);
+};
+
+Sun.prototype.reset = function (x, y, velocity) {
+  Phaser.Sprite.prototype.reset.call(this, x, y);
+  this.body.velocity.y = velocity;
+  this.timerElapsed = 0;
+  this.totalSunElapsed = 2000;
 };

@@ -12,6 +12,7 @@ Plant = function (game, position, element) {
   this.producingElapsed = 0;
   this.reset(position.x, position.y, element);
   this.createSun = new Phaser.Signal();
+  this.createBullet = new Phaser.Signal();
 };
 
 //signal es el medio, pero distpach es el mensaje
@@ -42,9 +43,13 @@ Plant.prototype.reset = function (x, y, data) {
 };
 
 Plant.prototype.shoot = function () {
+  if (!this.isShooter) return;
+
   if (this.animations.getAnimation(this.animationName)) {
     this.animations.play(this.animationName);
   }
+
+  this.createBullet.dispatch(this.x, this.y - 9);
   //TO-DO create bullet
 };
 
@@ -64,5 +69,5 @@ Plant.prototype.update = function () {
 
 Plant.prototype.generateSun = function () {
   if (!this.isSunProducer) return;
-  this.createSun.dispatch();
+  this.createSun.dispatch(this.x, this.y);
 };
