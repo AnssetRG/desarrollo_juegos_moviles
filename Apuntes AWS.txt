@@ -1,0 +1,9 @@
+Cloud Computing -> Nube: Servidores remotos alquilados por un proveedor (Amazon, Google, Oracle)
+
+Regiones de Amazon:
+	Zona de disponibilidad (AZ): Datacenters auoaislados con recursos y seguridades propias que ofrecen los servicios.
+	Recomendable: abrir en varias zonas cuando se tiene muchas máquinas.
+
+Security Groups: Abrir puertos, conexiones
+
+Modelo de responsabilidad compartida: Levantar una máquina con garantía de 99%, Amazon cumple con que las máquinas no se apaguen, pero la seguridad corre por el Usuario.

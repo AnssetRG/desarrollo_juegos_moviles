@@ -14,7 +14,7 @@ rm (-rf) dir1/: eliminar dicha dirección (-rf lo fuerza)
 vim xx.extension: crear archivo
 	apretando i puedes crear el archivo
 	ctrl + c -> dejar de escribir
-	:wq -> (cuando aparezca !type :) guardar
+	esc:wq -> (cuando aparezca !type :) guardar
 	:q! -> no guardar los cambios
 
 history: historial de comandos
